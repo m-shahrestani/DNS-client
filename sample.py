@@ -32,7 +32,7 @@ def build_message(type="A", address=""):
     OPCODE = 0  # Standard query            4bit
     AA = 0  # ?                         1bit
     TC = 0  # Message is truncated?     1bit
-    RD = 1  # Recursion?                1bit
+    RD = 0  # Recursion?                1bit
     RA = 0  # ?                         1bit
     Z = 0  # ?                         3bit
     RCODE = 0  # ?                         4bit
@@ -190,7 +190,10 @@ def get_type(type):
         "MX",
         "TXT"
     ]
-
+    if type == "AAAA":
+        return "{:04x}".format(28)
+    if type == 28:
+        return "AAAA"
     return "{:04x}".format(types.index(type)) if isinstance(type, str) else types[type]
 
 
@@ -215,7 +218,7 @@ def parse_parts(message, start, parts):
 if len(sys.argv) > 1:
     url = sys.argv[1]
 else:
-    url = "github.com"
+    url = "free-developer.ir"
 
 # See get_type function for other possibilities for first argument
 message = build_message("A", url)
@@ -223,6 +226,6 @@ print("Request:\n" + message)
 print("\nRequest (decoded):" + decode_message(message))
 
 # second argument is external DNS server, third argument is port
-response = send_udp_message(message, "1.1.1.1", 53)
+response = send_udp_message(message, "4.2.2.4", 53)
 print("\nResponse:\n" + response)
 print("\nResponse (decoded):" + decode_message(response))

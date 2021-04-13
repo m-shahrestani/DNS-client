@@ -3,8 +3,7 @@ import csv
 import socket
 from collections import OrderedDict
 
-myIP = socket.gethostbyname(socket.gethostname())
-dnsIP = "8.8.8.8"
+dnsIP = "1.1.1.1"
 local_address = ("127.0.0.1", 20001)
 bufferSize = 1024
 
@@ -31,7 +30,7 @@ def send_message_to_dns_server(ip, req):
     return binascii.hexlify(data).decode("utf-8")
 
 
-def get_type(t):
+def get_type(type):
     types = [
         "ERROR",  # type 0 does not exist
         "A",
@@ -51,8 +50,12 @@ def get_type(t):
         "MX",
         "TXT"
     ]
+    if type == "AAAA":
+        return "{:04x}".format(28)
+    if type == 28:
+        return "AAAA"
+    return "{:04x}".format(types.index(type)) if isinstance(type, str) else types[type]
 
-    return "{:04x}".format(types.index(t)) if isinstance(t, str) else types[t]
 
 
 def parse_parts(message, start, parts):
@@ -71,14 +74,14 @@ def parse_parts(message, start, parts):
         return parse_parts(message, part_end, parts)
 
 
-def build_message(record="A", address=""):
+def build_message(record="A", address="", rec_flag=1):
     ID = 43690  # 16-bit identifier (0-65535) # 43690 equals 'aaaa'
 
     QR = 0  # Query: 0, Response: 1     1bit
     OPCODE = 0  # Standard query            4bit
     AA = 0  # ?                         1bit
     TC = 0  # Message is truncated?     1bit
-    RD = 1  # Recursion?                1bit
+    RD = rec_flag  # Recursion?                1bit
     RA = 0  # ?                         1bit
     Z = 0  # ?                         3bit
     RCODE = 0  # ?                         4bit
@@ -215,6 +218,7 @@ def decode_message(message):
 
     return RDDATA_decoded, "\n".join(res)
 
+
 # 3-1 +
 def write_to_csv(name, ip, resp):
     csv.register_dialect('myDialect', delimiter='|', quoting=csv.QUOTE_ALL)
@@ -229,8 +233,10 @@ if __name__ == "__main__":
         try:
             localServerResponse = send_message_to_local_server(local_address, inp)
             print(localServerResponse.decode())
+
+            dnsResponse = send_message_to_dns_server(dnsIP, build_message("A", inp, 1))
+            print(decode_message(dnsResponse)[0])
+            print(decode_message(dnsResponse)[1])
+            write_to_csv(inp, decode_message(dnsResponse)[0], decode_message(dnsResponse)[1])
         except Exception:
             pass
-        dnsResponse = send_message_to_dns_server(dnsIP, build_message("A", inp))
-        print(decode_message(dnsResponse)[0])
-        write_to_csv(inp, decode_message(dnsResponse)[0], decode_message(dnsResponse)[1])

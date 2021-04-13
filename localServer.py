@@ -1,4 +1,4 @@
-# part 1-3
+# part 2-3
 
 import socket
 
@@ -15,7 +15,7 @@ while True:
     address = bytesAddressPair[1]
     clientMsg = "Message from Client: " + message.decode()
     clientIP = "Client IP Address:{}".format(address)
-    msgFromServer = "Hello UDP Client your massage is: " + message.decode()
+    msgFromServer = "UDP Client your massage is: " + message.decode()
     bytesToSend = str.encode(msgFromServer)
     print(clientMsg)
     print(clientIP)
