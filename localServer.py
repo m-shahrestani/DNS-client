@@ -1,9 +1,8 @@
 # part 2-3
-
 import socket
 
 local_address = ("127.0.0.1", 20001)
-bufferSize = 1024
+bufferSize = 4096
 
 UDPServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 UDPServerSocket.bind(local_address)
