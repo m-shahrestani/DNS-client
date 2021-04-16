@@ -2,7 +2,8 @@ import binascii
 import csv
 import socket
 
-dnsIP = "198.41.0.4"  # root server A
+# "198.41.0.4"   root server A
+dnsIP = "198.41.0.4"
 local_address = ("127.0.0.1", 20001)
 bufferSize = 4096
 cache = {}
@@ -23,7 +24,7 @@ def send_message_to_local_server(server_address, msg):
 def send_message_to_dns_server(addr, req):
     req = req.replace(" ", "").replace("\n", "")
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.settimeout(3)
+    sock.settimeout(5)
     try:
         sock.sendto(binascii.unhexlify(req), (addr, 53))
         data, _ = sock.recvfrom(4096)
@@ -152,7 +153,7 @@ def find(name_addr, server, rec_flag):
 
     # ID = message[0:4]
     # query_params = message[4:8]
-    QDCOUNT = int(message[8:12], 16)   # Number of questions
+    QDCOUNT = int(message[8:12], 16)  # Number of questions
     ANCOUNT = int(message[12:16], 16)  # Number of answers
     NSCOUNT = int(message[16:20], 16)  # Number of authority records
     ARCOUNT = int(message[20:24], 16)  # Number of additional records
@@ -201,9 +202,9 @@ if __name__ == "__main__":
             seen = set()
             _, ip = find(inp, dnsIP, 1)
             print("Recursive:\n" + ip)
-            seen = set()
-            _, ip = find(inp, dnsIP, 0)
-            print("Iterative:\n" + ip)
             if cache_count[inp] == 3:
                 cache[inp] = ip
             write_to_csv(inp, ip)
+            seen = set()
+            _, ip = find(inp, dnsIP, 0)
+            print("Iterative:\n" + ip)
